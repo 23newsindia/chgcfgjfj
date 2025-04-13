@@ -1,0 +1,303 @@
+/* Base Carousel Styles */
+.pc-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 30px;
+    overflow: hidden;
+}
+
+.pc-carousel-container {
+    display: flex;
+    width: 100%;
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+/* Mobile Carousel Mode */
+.pc-carousel-mode .pc-carousel-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    padding-bottom: 10px; /* Space for scrollbar */
+}
+
+.pc-carousel-mode .pc-carousel-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.pc-carousel-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    display: flex;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.pc-carousel-slide .product-item {
+    flex: 0 0 calc(50% - 10px);
+    margin: 0 5px;
+    min-width: 0; /* Fix flexbox overflow */
+}
+
+/* Desktop Grid Mode */
+.pc-grid-mode .pc-carousel-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    overflow: visible;
+}
+
+/* Navigation Buttons */
+.pc-carousel-prev,
+.pc-carousel-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.pc-carousel-prev {
+    left: 0;
+}
+
+.pc-carousel-next {
+    right: 0;
+}
+
+/* Dots Navigation */
+.pc-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.pc-carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ddd;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.pc-carousel-dot.active {
+    background: #333;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767px) {
+    .pc-carousel-wrapper {
+        padding: 0 15px;
+    }
+    
+    .pc-carousel-prev,
+    .pc-carousel-next {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .pc-grid-mode .pc-carousel-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+
+
+/* Product Carousel Container */
+.pc-carousel-wrapper {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+
+/* Mobile Carousel Mode */
+.pc-carousel-mode .product-item {
+    width: 50%; /* Half width for mobile */
+    padding: 0 8px;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .pc-grid-mode .product-item {
+        /* Let theme handle desktop styling */
+        width: auto;
+    }
+}
+
+
+
+
+/* Carousel Grid Mode (Desktop) */
+.pc-grid-mode .pc-carousel-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-s);
+}
+
+@media screen and (min-width: 768px) {
+  .pc-grid-mode .pc-carousel-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--space-2xl);
+    row-gap: var(--space-xl);
+  }
+}
+
+/* Carousel Slide Mode (Mobile) */
+.pc-carousel-mode .pc-carousel-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pc-carousel-mode .pc-carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+.pc-carousel-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  padding: 0 8px;
+}
+
+/* Product Item - Match Theme Styles */
+.pc-product-item {
+  border: none;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.pc-product-image {
+  position: relative;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+}
+
+.pc-product-image img {
+  color: transparent;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  width: 100%;
+  border-radius: 0;
+}
+
+/* Product Info - Match Theme Styles */
+.pc-product-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  margin-top: 0;
+  padding: 8px 0;
+}
+
+.pc-product-title {
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 65ch;
+  text-overflow: ellipsis;
+  color: var(--secondary-color);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin: 4px 0;
+}
+
+.pc-product-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px;
+  margin: 4px 0;
+}
+
+.pc-product-price .amount {
+  color: black;
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+/* Navigation Buttons */
+.pc-carousel-prev,
+.pc-carousel-next {
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 10;
+  display: none;
+}
+
+.pc-carousel-prev {
+  left: 10px;
+}
+
+.pc-carousel-next {
+  right: 10px;
+}
+
+@media (min-width: 768px) {
+  .pc-carousel-prev,
+  .pc-carousel-next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Dots Navigation */
+.pc-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pc-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pc-carousel-dot.active {
+  background: var(--primary-color);
+}
+
+/* Match Theme Specific Elements */
+.pc-product-item .top-badge,
+.pc-product-item .rating-badge,
+.pc-product-item .brand-row,
+.pc-product-item .wishlist-btn,
+.pc-product-item .fabric-tag {
+  /* These should match exactly what's in your theme */
+  /* Copy the styles from your theme's CSS for these elements */
+}
