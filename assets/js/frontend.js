@@ -1,274 +1,151 @@
-/* Base Carousel Styles */
-.pc-carousel-wrapper {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-    padding: 0;
+document.addEventListener('DOMContentLoaded', function() {
+    initAllCarousels();
+    document.addEventListener('ajaxComplete', initAllCarousels);
+});
+
+function initAllCarousels() {
+    const carousels = document.querySelectorAll('.pc-carousel-wrapper:not(.initialized)');
+    carousels.forEach(carousel => {
+        try {
+            new ProductCarousel(carousel);
+            carousel.classList.add('initialized');
+        } catch (error) {
+            console.error('Carousel init error:', error);
+            fallbackToGrid(carousel);
+        }
+    });
 }
 
-.pc-carousel-container {
-    display: flex;
-    width: 100%;
-    transition: transform 0.5s ease;
-    will-change: transform;
-    gap: 20px;
-}
+class ProductCarousel {
+    constructor(wrapper) {
+        this.wrapper = wrapper;
+        this.container = wrapper.querySelector('.pc-carousel-container');
+        this.slides = Array.from(this.container.children);
+        this.currentIndex = 0;
+        this.isMobile = window.innerWidth < 768;
+        
+        // Get settings from data attributes
+        this.settings = {
+            desktopCols: parseInt(wrapper.dataset.columns) || 5,
+            visibleItems: this.isMobile ? 2 : parseInt(wrapper.dataset.columns) || 5
+        };
 
-/* Desktop Grid Mode c*/
-@media (min-width: 768px) {
-    .pc-grid-mode .pc-carousel-container {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 20px;
-        overflow: hidden;
+        this.init();
     }
 
-    .pc-grid-mode .product-item {
-        flex: 0 0 calc(20% - 16px); /* 5 items per row with gap */
-        max-width: calc(20% - 16px);
-        transition: transform 0.3s ease;
-    }
-}
-
-/* Mobile Carousel Mode */
-@media (max-width: 767px) {
-    .pc-carousel-mode .pc-carousel-container {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-bottom: 10px;
+    init() {
+        this.setupCarousel();
+        this.setupNavigation();
+        this.bindEvents();
+        this.updateSlideVisibility();
     }
 
-    .pc-carousel-mode .pc-carousel-container::-webkit-scrollbar {
-        display: none;
+    setupCarousel() {
+        if (this.isMobile) {
+            this.wrapper.classList.add('pc-carousel-mode');
+            this.wrapper.classList.remove('pc-grid-mode');
+        } else {
+            this.wrapper.classList.add('pc-grid-mode');
+            this.wrapper.classList.remove('pc-carousel-mode');
+            
+            // Set initial transform
+            this.container.style.transform = 'translateX(0)';
+        }
+
+        // Calculate item width
+        const gap = 20;
+        const containerWidth = this.wrapper.offsetWidth;
+        const itemWidth = (containerWidth - (gap * (this.settings.visibleItems - 1))) / this.settings.visibleItems;
+
+        this.slides.forEach(slide => {
+            slide.style.flex = `0 0 ${itemWidth}px`;
+            slide.style.maxWidth = `${itemWidth}px`;
+        });
     }
 
-    .pc-carousel-mode .product-item {
-        flex: 0 0 calc(50% - 10px);
-        scroll-snap-align: start;
+    setupNavigation() {
+        // Create navigation buttons
+        const prevBtn = this.wrapper.querySelector('.pc-carousel-prev') || this.createNavButton('prev');
+        const nextBtn = this.wrapper.querySelector('.pc-carousel-next') || this.createNavButton('next');
+        
+        prevBtn.addEventListener('click', () => this.navigate(-1));
+        nextBtn.addEventListener('click', () => this.navigate(1));
+
+        this.prevBtn = prevBtn;
+        this.nextBtn = nextBtn;
     }
+
+    createNavButton(direction) {
+        const btn = document.createElement('button');
+        btn.className = `pc-carousel-${direction}`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="${direction === 'prev' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'}"/>
+        </svg>`;
+        this.wrapper.appendChild(btn);
+        return btn;
+    }
+
+    bindEvents() {
+    window.addEventListener('resize', () => {
+        const wasMobile = this.isMobile;
+        this.isMobile = window.innerWidth < 768;
+        
+        if (wasMobile !== this.isMobile) {
+            this.currentIndex = 0;
+            this.settings.visibleItems = this.isMobile ? 2 : parseInt(this.wrapper.dataset.columns) || 5;
+            this.setupCarousel();
+            this.updateSlideVisibility();
+            this.container.style.transform = 'translateX(0)';
+        } else if (!this.isMobile) {
+            // Recalculate item widths on desktop resize
+            this.setupCarousel();
+        }
+    });
 }
 
-/* Product Card Styles */
-.product-item {
-    position: relative;
-    margin-bottom: 30px;
-    cursor: pointer;
+    navigate(direction) {
+    if (this.isMobile) return;
+
+    const totalSlides = this.slides.length;
+    const maxIndex = Math.max(0, Math.ceil(totalSlides / this.settings.visibleItems) - 1);
+    
+    this.currentIndex = Math.max(0, Math.min(this.currentIndex + direction, maxIndex));
+    
+    // Use wrapper's width as the move amount
+    const translateX = -(this.currentIndex * this.wrapper.offsetWidth);
+    
+    this.container.style.transform = `translateX(${translateX}px)`;
+    this.updateSlideVisibility();
 }
 
-.product-img-wrap {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
+    updateSlideVisibility() {
+        if (this.isMobile) {
+            this.prevBtn.style.display = 'none';
+            this.nextBtn.style.display = 'none';
+            return;
+        }
 
-.product-img-wrap img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
+        const totalSlides = this.slides.length;
+        const maxIndex = Math.max(0, Math.ceil(totalSlides / this.settings.visibleItems) - 1);
 
-.product-img-wrap:hover img {
-    transform: scale(1.01);
-}
+        this.prevBtn.disabled = this.currentIndex === 0;
+        this.nextBtn.disabled = this.currentIndex >= maxIndex;
 
-/* Top Badge */
-.top-badge {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 4px 8px;
-    background: #fff;
-    font-size: 8px;
-    font-weight: 600;
-    color: #000;
-    max-width: 90%;
-    z-index: 1;
-}
-
-/* Rating Badge */
-.rating-badge {
-    position: absolute;
-    bottom: 12px;
-    left: 8px;
-    padding: 4px 8px;
-    background: #fff;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-
-.star-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-}
-
-.rating-value {
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.rating-tag {
-    font-size: 11px;
-    font-weight: 700;
-}
-
-/* Product Info */
-.product-info {
-    padding: 8px 0;
-    min-height: 82px;
-}
-
-.brand-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.brand-name {
-    font-weight: 600;
-    color: #737e93;
-    text-transform: capitalize;
-    font-size: 12px;
-}
-
-.product-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #2d2d2d;
-    margin: 4px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.price-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 6px;
-}
-
-.current-price {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.original-price {
-    font-size: 12px;
-    text-decoration: line-through;
-    color: #949494;
-}
-
-.discount {
-    color: #00b852;
-    font-size: 11px;
-}
-
-.fabric-tag {
-    font-size: 11px;
-    color: #737e93;
-    margin-top: 4px;
-}
-
-/* Navigation Buttons */
-.pc-carousel-prev,
-.pc-carousel-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 47px;
-    height: 47px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid;
-    border-image: linear-gradient(#f4f4f4 0%, rgba(181,181,181,0) 100%) 1;
-    cursor: pointer;
-    z-index: 10;
-    transition: opacity 0.3s ease;
-}
-
-.pc-carousel-prev:disabled,
-.pc-carousel-next:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pc-carousel-prev {
-    left: 20px;
-}
-
-.pc-carousel-next {
-    right: 20px;
-}
-
-.pc-carousel-prev svg,
-.pc-carousel-next svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* Hide navigation on mobile */
-@media (max-width: 767px) {
-    .pc-carousel-prev,
-    .pc-carousel-next {
-        display: none;
+        this.prevBtn.style.display = 'flex';
+        this.nextBtn.style.display = 'flex';
     }
 }
 
-/* Wishlist Button */
-.wishlist-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-}
+function fallbackToGrid(carousel) {
+    const container = carousel.querySelector('.pc-carousel-container');
+    if (container) {
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+        container.style.gap = '20px';
+    }
 
-.wishlist-btn svg {
-    width: 16px;
-    height: 16px;
-    color: #000;
-}
-
-/* Dots Navigation */
-.pc-carousel-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 20px;
-}
-
-.pc-carousel-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #e5e7eb;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.pc-carousel-dot.active {
-    background: #292D35;
-}
-
-/* Hide scrollbar */
-.pc-carousel-container {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.pc-carousel-container::-webkit-scrollbar {
-    display: none;
+    // Hide navigation
+    const nav = carousel.querySelectorAll('.pc-carousel-prev, .pc-carousel-next');
+    nav.forEach(btn => btn.style.display = 'none');
 }
